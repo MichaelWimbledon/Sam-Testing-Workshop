@@ -1,0 +1,91 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: A starter AWS Lambda function.
+
+Resources:
+  helloWorld:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: handler.hello
+      Runtime: nodejs12.x
+      CodeUri: .
+      Description: A starter AWS Lambda function.
+      MemorySize: 128
+      Timeout: 3
+      events:
+        - http:
+            method: get
+            path: hello
+
+  holaWorld:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: handler.hola
+      Runtime: nodejs12.x
+      Role: !GetAtt HolaRole.Arn
+      CodeUri: .
+      Description: A starter AWS Lambda function.
+      MemorySize: 128
+      Timeout: 3
+      events:
+        - http:
+            method: get
+            path: hola
+
+  wasGreeted:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: handler.wasGreeted
+      Runtime: nodejs12.x
+      CodeUri: .
+      Description: A starter AWS Lambda function.
+      MemorySize: 128
+      Timeout: 3
+      events:
+        - http:
+            method: get
+            path: greet
+
+  GreeterTable :
+    Type: 'AWS::DynamoDB::Table'
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: "name"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "name"
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      TableName: GreeterTable
+
+  HolaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        {
+          "Version": "2012-10-17",
+          "Statement":
+            [
+              {
+                "Effect": "Allow",
+                "Principal": { "Service": ["lambda.amazonaws.com"] },
+                "Action": ["sts:AssumeRole"],
+              },
+            ],
+        }
+      Description: Allows Lambda to add items to dynamo
+      Policies: 
+        - PolicyName: DynamoDB
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: 
+                  - "dynamodb:PutItem"
+                  - "dynamodb:GetItem"
+                Resource: 
+                  Fn::GetAtt:
+                    - GreeterTable
+                    - Arn
